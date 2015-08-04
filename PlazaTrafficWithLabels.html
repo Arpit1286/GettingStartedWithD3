@@ -31,7 +31,6 @@
     <script>
         function draw(data) {
             "use strict";
-            console.log(data.cash)
             // visualization code
             d3.select("body")
                     .append("div")
@@ -54,7 +53,7 @@
                     .text(function(d){return Math.round(d.count)});
         }
     </script>
-    <title>Mean Daily Plaza Traffic</title>
+    <title>Mean Daily Plaza Traffic with Labels</title>
 </head>
 <body>
 <script>
