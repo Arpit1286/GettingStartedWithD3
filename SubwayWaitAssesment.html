@@ -56,6 +56,22 @@
         }
     }
 
+    function add_label(circle, d){
+        d3.select(circle)
+                .transition()
+                .attr("r", 9);
+        g.append("text")
+                .text(d.line_id.split("_")[1])
+                .attr("x", time_scale(d.time))
+                .attr("y", percent_scale(d.late_percent))
+                .attr("dy", "0.35em")
+                .attr("class", "linelabel")
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .transition()
+                .style("opacity", 1)
+    }
+
     function draw_timeseries(data, id) {
         var line = d3.svg.line()
                 .x(function(d){return time_scale(d.time)})
@@ -69,6 +85,67 @@
 
         g.append("path")
                 .attr("d", line(data));
+
+        var enter_duration = 1000;
+        g.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d) {return time_scale(d.time)})
+                .attr("cy", function(d) {return percent_scale(d.late_percent)})
+                .attr("r", 0);
+
+        g.selectAll("circle")
+                .transition()
+                .delay(function(d,i){return i / data.length * enter_duration;})
+                .attr("r", 5)
+                .each("end", function(d,i){
+                    if (i === data.length - 1){
+                        add_label(this, d);
+                    }
+                });
+
+        g.selectAll("circle")
+                .on("mouseout", function(d,i){
+                  if (i !== data.length-1){
+                      d3.select(this).transition().attr("r", 5);
+                  }
+                })
+
+
+        g.selectAll("circle")
+                .on("mouseover.tooltip", function(d){
+                    d3.select("text#" + d.line_id).remove();
+                    d3.select("#chart")
+                            .append("text")
+                            .text(d.late_percent + "%")
+                            .attr("x", time_scale(d.time) + 10)
+                            .attr("y", percent_scale(d.late_percent) - 10)
+                            .attr("id", d.line_id)
+                });
+
+        g.selectAll("circle")
+                .on("mouseout.tooltip", function(d){
+                    d3.select("text." + d.line_id)
+                            .transition()
+                            .duration(500)
+                            .style("opacity", 0)
+                            .attr("transform", "translate(10, -10)")
+                            .remove();
+                });
+
+        g.selectAll("circle")
+                .on("mouseover", function(d){
+                    d3.select(this)
+                            .transition()
+                            .attr("r", 9);
+                })
+                .on("mouseout", function(d){
+                    d3.select(this)
+                            .transition()
+                            .attr("r", 5);
+                });
+
     }
 
     function draw(data) {
